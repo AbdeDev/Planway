@@ -5,10 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	"backend/routes"  // Utilise le chemin relatif sans le nom du module
+	"backend/db"
+	"backend/routes" // Utilise le chemin relatif sans le nom du module
 )
 
 func main() {
+	db.InitDB()
+	
 	r := routes.SetupRouter()
 	port := ":8080"
 	fmt.Printf("Server is running on port %s\n", port)
