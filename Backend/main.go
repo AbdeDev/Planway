@@ -1,19 +1,34 @@
+// main.go
 package main
 
 import (
-	"fmt"
-	"log"
+	"backend/db"
+	"backend/routes"
 	"net/http"
 
-	"backend/db"
-	"backend/routes" // Utilise le chemin relatif sans le nom du module
+	"github.com/gorilla/mux"
 )
 
 func main() {
+	// Initialiser la base de données
 	db.InitDB()
-	
-	r := routes.SetupRouter()
-	port := ":8080"
-	fmt.Printf("Server is running on port %s\n", port)
-	log.Fatal(http.ListenAndServe(port, r))
+
+	// Créer un routeur Gorilla mux
+	router := mux.NewRouter()
+
+	// Routes pour les salons
+	router.HandleFunc("/api/salons", routes.CreateSalon).Methods("POST")
+	router.HandleFunc("/api/salons/{id}", routes.GetSalonByID).Methods("GET")
+	router.HandleFunc("/api/salons/{id}", routes.UpdateSalon).Methods("PUT")
+	router.HandleFunc("/api/salons/{id}", routes.DeleteSalon).Methods("DELETE")
+	router.HandleFunc("/api/salons", routes.GetAllSalons).Methods("GET")
+
+	// ... autres routes pour d'autres fonctionnalités si nécessaire
+
+	// Définir le routeur comme route principale
+	http.Handle("/", router)
+
+	// Démarrer le serveur
+	http.ListenAndServe(":8080", nil)
 }
+

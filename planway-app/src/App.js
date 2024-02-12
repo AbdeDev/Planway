@@ -5,7 +5,7 @@ import SalonList from './pages/salonList';
 
 
 function App() {
-  console.log('App rendered'); // Ajoute cette ligne
+  console.log('App rendered');
 
   return (
     <Router>
