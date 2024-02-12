@@ -2,14 +2,13 @@
 package routes
 
 import (
-	"backend/db"
+
 	"backend/models"
 	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -105,4 +104,3 @@ func generateJWT(user *models.User) (string, error) {
 	return tokenString, nil
 }
 
-// À faire: Ajouter d'autres routes d'authentification au besoin

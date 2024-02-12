@@ -70,4 +70,33 @@ func UpdateSalon(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updatedSalon)
 }
 
-// À faire: Ajouter d'autres routes pour les opérations de salon au besoin
+// DeleteSalon supprime un salon par son ID
+func DeleteSalon(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	salonID := params["id"]
+
+	// Ajouter la logique pour supprimer un salon dans la base de données
+	err := db.DeleteSalon(salonID)
+	if err != nil {
+		http.Error(w, "Erreur lors de la suppression du salon", http.StatusInternalServerError)
+		return
+	}
+
+	// Répondre avec un message de succès
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Salon supprimé avec succès"})
+}
+
+// GetAllSalons récupère la liste de tous les salons
+func GetAllSalons(w http.ResponseWriter, r *http.Request) {
+	// Ajouter la logique pour récupérer tous les salons depuis la base de données
+	salons, err := db.GetAllSalons()
+	if err != nil {
+		http.Error(w, "Erreur lors de la récupération des salons", http.StatusInternalServerError)
+		return
+	}
+
+	// Répondre avec la liste des salons
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(salons)
+}

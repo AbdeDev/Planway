@@ -5,9 +5,9 @@ import (
 	"backend/models"
 	"database/sql"
 	"fmt"
-	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,7 +45,7 @@ func CreateUser(user models.User) (models.User, error) {
 	// Vérifier si l'utilisateur existe déjà
 	existingUser, err := getUserByEmail(user.Email)
 	if err == nil && existingUser != nil {
-		return createdUser, fmt.Errorf("Un utilisateur avec cet e-mail existe déjà")
+		return createdUser, fmt.Errorf("un utilisateur avec cet e-mail existe déjà")
 	}
 
 	// Hasher le mot de passe
@@ -78,10 +78,11 @@ func AuthenticateUser(email, password string) (models.User, error) {
 	// Vérifier le mot de passe
 	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(password))
 	if err != nil {
-		return user, fmt.Errorf("Mot de passe incorrect")
+		return user, fmt.Errorf("mot de passe incorrect")
 	}
 
-	return dbUser, nil
+	// Retourner la copie de l'utilisateur (pas le pointeur)
+	return *dbUser, nil
 }
 
 // getUserByEmail récupère un utilisateur depuis la base de données par e-mail
@@ -142,4 +143,53 @@ func CreateSalon(newSalon models.Salon) (models.Salon, error) {
 
 	// Remplacer cet exemple par le salon réellement créé dans la base de données
 	return createdSalon, nil
+}
+
+// UpdateSalon met à jour les détails d'un salon existant
+func UpdateSalon(salonID string, updatedSalon models.Salon) (models.Salon, error) {
+	err := Conn.QueryRow("UPDATE salons SET name=$1, location=$2 WHERE id=$3 RETURNING id, name, location",
+		updatedSalon.Name, updatedSalon.Location, salonID).
+		Scan(&updatedSalon.ID, &updatedSalon.Name, &updatedSalon.Location)
+	if err != nil {
+		return models.Salon{}, err
+	}
+
+	return updatedSalon, nil
+}
+
+// GetSalon récupère les détails d'un salon spécifique par son ID
+func GetSalon(salonID string) (models.Salon, error) {
+	var salon models.Salon
+	err := Conn.QueryRow("SELECT * FROM salons WHERE id = $1", salonID).Scan(&salon.ID, &salon.Name, &salon.Location)
+	if err != nil {
+		return models.Salon{}, err
+	}
+
+	return salon, nil
+}
+
+// DeleteSalon supprime un salon par son ID
+func DeleteSalon(salonID string) error {
+	_, err := Conn.Exec("DELETE FROM salons WHERE id = $1", salonID)
+	return err
+}
+
+func GetAllSalons() ([]models.Salon, error) {
+	rows, err := Conn.Query("SELECT * FROM salons")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var salons []models.Salon
+	for rows.Next() {
+		var salon models.Salon
+		err := rows.Scan(&salon.ID, &salon.Name, &salon.Location)
+		if err != nil {
+			return nil, err
+		}
+		salons = append(salons, salon)
+	}
+
+	return salons, nil
 }
